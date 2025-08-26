@@ -1,5 +1,7 @@
 
 const userModel = require('../Models/users.model');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 exports.getAllUsers = async (req, res) => {
     let users = await userModel.find();
@@ -52,4 +54,26 @@ exports.deleteUser = async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: 'fail' })
     }
+}
+
+
+exports.login = async (req ,res)=>{
+    let { email , password} = req.body;
+    if(!email || !password){
+        return res.status(400).json({message: 'You must provide email and password'})
+    }
+
+    let user = await userModel.findOne({email: email});
+    if(!user){
+        return res.status(404).json({message: 'this user is not found'})
+    }
+
+    let isValid = await bcrypt.compare(password , user.password);
+    if(!isValid){
+        return res.status(401).json({message: 'invalid email or password'})
+    }
+
+    let token = jwt.sign({id:user._id , email: user.email , role: user.role} , 'myJsonWebTokenSecret' , {expiresIn: '2h'});
+    res.status(201).json({message: 'Success' , token})
+
 }
