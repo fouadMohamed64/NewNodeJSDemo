@@ -54,3 +54,8 @@ exports.deleteTodo = async (req, res) => {
         res.status(400).json({ message: 'fail' })
     }
 }
+
+exports.viewAllTodos = async (req , res) => {
+    let todos  = await todoModel.find()
+    res.render('todos' , {todos})
+}

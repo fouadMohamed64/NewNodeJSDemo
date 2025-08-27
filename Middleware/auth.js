@@ -9,11 +9,26 @@ exports.auth = async (req ,res ,next)=>{
     }
     try{
         // jwt.verify(authorization , 'myJsonWebTokenSecret' , function(){})
-        let decoded = await promisify(jwt.verify)(authorization , 'myJsonWebTokenSecret')  // {id:user._id , email: user.email , role: user.role} 
-        console.log(decoded);
+        let decoded = await promisify(jwt.verify)(authorization , process.env.SECRET)  // {id:user._id , email: user.email , role: user.role} 
+        // console.log(decoded);
+        req.role = decoded.role;
+        // req.id = decoded.id;
         next();
     }catch(error){
         res.status(403).json({message: 'invalid token'})
     }
 
+}
+
+
+exports.restrictTo = (...roles)=>{  // ['user', 'admin']   , ['admin']
+
+    return (req , res , next)=>{
+        
+        if(!roles.includes(req.role)){
+            return res.status(403).json({message: 'you are not authorized'})
+        }else{
+            next();
+        }
+    }
 }
